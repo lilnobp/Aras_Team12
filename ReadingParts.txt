@@ -1,0 +1,152 @@
+using System;
+using System.Collections.Generic;
+using System.Net.Http;
+using System.Net.Http.Headers;
+
+using System.Text;
+
+namespace ODataExample
+{
+    class Connector
+    {
+        private string innovatorUrl = "http://localhost/InnovatorServer"; // base Innovator url
+        private string innovatorUsername = "admin"; // Innovator user name
+        private string innovatorPassword = "607920B64FE136F9AB2389E371852AF2"; // MD5 hash of Innovator user password (mush be SHA hash in case of FIPS)
+        private string innovatorDatabase = "InnovatorSolutions"; // database name, could be obtained from innovatorServerUrl+"dblist.aspx"
+        private string oauthServerClientId = "IOMApp"; // must be registered in authorization server's oauth.config file
+        public string gettokenData
+        {
+            get;set;
+        }
+        public string odataUrlPartAllPprt(string partId)
+        {
+            
+                return $"{innovatorUrl}/server/odata/Part('{partId}')";
+           
+        }
+        public string odataUrlPartItemName(string partId)
+        {
+
+            return $"{innovatorUrl}/server/odata/Part('{partId}')/item_number/$value";
+
+        }
+        public string odataUrlPart
+        {
+            get
+            {
+                return $"{innovatorUrl}/server/odata/Part";
+            }
+        }
+        public string innovatorServerDiscoveryUrl
+        {
+            get
+            {
+                return $"{innovatorUrl}/Server/OAuthServerDiscovery.aspx";
+            }
+        }
+        public void PostNewItem(string Item_Name ,string Item_number)
+        {
+            var body = new B(new[]
+           {
+                new KeyValuePair<string, string>("item_number", Item_number),
+                new KeyValuePair<string, string>("name",Item_Name ),
+            });
+            
+    
+            try
+            {
+                 this.GetJson(odataUrlPart, gettokenData, body);
+            }
+            catch(Exception e)
+            {
+                Console.WriteLine(e);
+            }
+            
+        }
+        public Connector()
+        {
+            var oauthServerUrl = GetOAuthServerUrl(innovatorServerDiscoveryUrl);
+
+            if (oauthServerUrl == null)
+                Environment.Exit(0);
+
+            //
+            // Get token endpoint
+            // ==================
+            var oauthServerConfigurationUrl = oauthServerUrl + ".well-known/openid-configuration";
+
+            var tokenUrl = GetTokenEndpoint(oauthServerConfigurationUrl);
+
+            if (tokenUrl == null)
+                Environment.Exit(0);
+
+
+            //
+            // Get access token
+            // ================
+            var body = new FormUrlEncodedContent(new[]
+            {
+                new KeyValuePair<string, string>("grant_type", "password"),
+                new KeyValuePair<string, string>("scope", "Innovator"),
+                new KeyValuePair<string, string>("client_id", oauthServerClientId),
+                new KeyValuePair<string, string>("username", innovatorUsername),
+                new KeyValuePair<string, string>("password", innovatorPassword),
+                new KeyValuePair<string, string>("database", innovatorDatabase),
+            });
+
+            var tokenData = GetJson(tokenUrl, null, body);
+
+            if (tokenData == null)
+                Environment.Exit(0);
+            gettokenData = tokenData.access_token;
+        }
+        public  string GetOAuthServerUrl(string url)
+        {
+            var discovery = GetJson(url);
+
+            return discovery?.locations[0]?.uri;
+        }
+
+        public  string GetTokenEndpoint(string url)
+        {
+            var configuration = GetJson(url);
+
+            return configuration?.token_endpoint;
+        }
+
+        public  dynamic GetJson(string url, string accessToken = null, HttpContent body = null)
+        {
+            using (HttpClient client = new HttpClient())
+            {
+
+                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+                if (accessToken != null)
+                {
+                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+                }
+
+                HttpResponseMessage response;
+                if (body == null)
+                {
+                    response = client.GetAsync(url).Result;
+                }
+                else
+                {
+                    response = client.PostAsync(url, body).Result;
+                }
+
+                if (response.IsSuccessStatusCode)
+                {
+                    return response.Content.ReadAsAsync<dynamic>().Result;
+                }
+                else
+                {
+                    Console.WriteLine("{0}: {1} ({2})", url, (int)response.StatusCode, response.ReasonPhrase);
+                    return null;
+                }
+
+            }
+        }
+    }
+}

@@ -1,0 +1,63 @@
+using System;
+using System.Collections.Generic;
+using System.Net.Http;
+using System.Net.Http.Headers;
+
+
+namespace ODataExample
+{
+    class Program
+    {
+		
+
+        static void Main(string[] args)
+        {
+
+
+
+            Connector ArasUser = new Connector();
+           Start: Console.WriteLine("Please Press the following Entries");
+            Console.WriteLine("1 The Overview of All Items in Aras");
+            Console.WriteLine("2 Get an item property's data in Aras but here you need the Item Number ");
+            Console.WriteLine("3 Get a property value of an Item ");
+            Console.WriteLine("4 Creat an Item  Item in Aras");
+            string  Task = Console.ReadLine();
+            if (Task == "1")
+            {
+                var parts = ArasUser.GetJson(ArasUser.odataUrlPart, ArasUser.gettokenData);
+                Console.WriteLine(parts);
+                goto Start;
+            }
+            else if (Task == "2")
+            {
+                Console.WriteLine("Please give the Item Id ");
+                string item_id = Console.ReadLine();
+                var parts = ArasUser.GetJson(ArasUser.odataUrlPartAllPprt(item_id), ArasUser.gettokenData);
+                Console.WriteLine(parts);
+                goto Start;
+            }
+            else if (Task == "3")
+            {
+                Console.WriteLine("Please give the Item Id ");
+                string item_id = Console.ReadLine();
+                var parts = ArasUser.GetJson(ArasUser.odataUrlPartItemName(item_id), ArasUser.gettokenData);
+                Console.WriteLine(parts);
+                goto Start;
+            }
+            else if (Task == "4")
+            {
+                Console.WriteLine("Please give the Item Id ");
+                string item_id = Console.ReadLine();
+                Console.WriteLine("Please give the Item Name ");
+                string item_Name = Console.ReadLine();
+                ArasUser.PostNewItem(item_Name, item_id);
+                Console.WriteLine("Sucessfully added");
+                goto Start;
+            }
+            Console.Read();
+        }
+		
+		
+		
+    }
+}
