@@ -46,7 +46,7 @@ namespace ODataExample
         }
         public void PostNewItem(string Item_Name ,string Item_number)
         {
-            var body = new B(new[]
+            var body = new FormUrlEncodedContent(new[]
            {
                 new KeyValuePair<string, string>("item_number", Item_number),
                 new KeyValuePair<string, string>("name",Item_Name ),
