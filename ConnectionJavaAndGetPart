@@ -16,6 +16,48 @@ public class RestApi {
     private static HttpURLConnection con;
     private static String ArasAcessToken;
     private static  String getArasAcessToken;
+    
+    
+    public static void creatItem(String ItemName ,String ItemNumber) {
+    	String ItemMetaInfo = "{\"item_number\":\""+ItemNumber+"\",\"name\":\""+ItemName+"\"}";
+    	byte[] out =  ItemMetaInfo.getBytes(StandardCharsets.UTF_8);
+    	int length = out.length;
+    	 URL url = null;
+ 		try {
+ 			url = new URL("http://localhost/InnovatorServer/server/odata/Part");
+ 		} catch (MalformedURLException e) {
+ 			// TODO Auto-generated catch block
+ 			e.printStackTrace();
+ 		}
+          HttpURLConnection conn = null;
+ 		try {
+ 			conn = (HttpURLConnection) url.openConnection();
+ 		} catch (IOException e) {
+ 			// TODO Auto-generated catch block
+ 			e.printStackTrace();
+ 		}
+ 		  conn.setDoOutput(true);
+      	  conn.setFixedLengthStreamingMode(length);
+          conn.setRequestProperty("Authorization","Bearer  "+getArasAcessToken);
+          //e.g. bearer token= eyJhbGciOiXXXzUxMiJ9.eyJzdWIiOiPyc2hhcm1hQHBsdW1zbGljZS5jb206OjE6OjkwIiwiZXhwIjoxNTM3MzQyNTIxLCJpYXQiOjE1MzY3Mzc3MjF9.O33zP2l_0eDNfcqSQz29jUGJC-_THYsXllrmkFnk85dNRbAw66dyEKBP5dVcFUuNTA8zhA83kk3Y41_qZYx43T
+
+          conn.setRequestProperty("Content-Type","application/json");
+          try {
+ 			conn.setRequestMethod("POST");
+ 			try(OutputStream os = conn.getOutputStream()) {
+ 			    os.write(out);
+ 			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+ 		} catch (ProtocolException e) {
+ 			// TODO Auto-generated catch block
+ 			e.printStackTrace();
+ 		}
+          
+    }
+    
+    
     public static void getAllItems()  {
     	
     	 URL url = null;
@@ -79,6 +121,8 @@ public class RestApi {
             	System.out.println(part);
          
     }
+    
+    
 	public static void connection()     {
 		String url = "http://localhost/InnovatorServer/oauthserver/connect/token";
         String urlParameters = "grant_type=password&scope=Innovator&client_id=IOMApp&username=admin&password=607920B64FE136F9AB2389E371852AF2&database=InnovatorSolutions";
