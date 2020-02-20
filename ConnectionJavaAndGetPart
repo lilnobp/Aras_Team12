@@ -1,0 +1,133 @@
+package ArasMethode;
+
+
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.ProtocolException;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.io.BufferedReader;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+
+public class RestApi {
+	
+    private static HttpURLConnection con;
+    private static String ArasAcessToken;
+    private static  String getArasAcessToken;
+    public static void getAllItems()  {
+    	
+    	 URL url = null;
+		try {
+			url = new URL("http://localhost/InnovatorServer/server/odata/Part");
+		} catch (MalformedURLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+         HttpURLConnection conn = null;
+		try {
+			conn = (HttpURLConnection) url.openConnection();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+         conn.setRequestProperty("Authorization","Bearer  "+getArasAcessToken);
+         //e.g. bearer token= eyJhbGciOiXXXzUxMiJ9.eyJzdWIiOiPyc2hhcm1hQHBsdW1zbGljZS5jb206OjE6OjkwIiwiZXhwIjoxNTM3MzQyNTIxLCJpYXQiOjE1MzY3Mzc3MjF9.O33zP2l_0eDNfcqSQz29jUGJC-_THYsXllrmkFnk85dNRbAw66dyEKBP5dVcFUuNTA8zhA83kk3Y41_qZYx43T
+
+         conn.setRequestProperty("Content-Type","application/json");
+         try {
+			conn.setRequestMethod("GET");
+		} catch (ProtocolException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+
+         BufferedReader in = null;
+		try {
+			in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+         String output;
+
+         StringBuffer response = new StringBuffer();
+         try {
+			while ((output = in.readLine()) != null) {
+			     response.append(output);
+			 }
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+
+         try {
+			in.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+         // printing result from response
+         System.out.println("Response:-" + response.toString());
+    }
+	public static void connection()     {
+		String url = "http://localhost/InnovatorServer/oauthserver/connect/token";
+        String urlParameters = "grant_type=password&scope=Innovator&client_id=IOMApp&username=admin&password=607920B64FE136F9AB2389E371852AF2&database=InnovatorSolutions";
+        byte[] postData = urlParameters.getBytes(StandardCharsets.UTF_8);
+
+        try {
+
+            URL myurl = new URL(url);
+            con = (HttpURLConnection) myurl.openConnection();
+
+            con.setDoOutput(true);
+            con.setRequestMethod("POST");
+            con.setRequestProperty("User-Agent", "Java client");
+            con.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+            
+            try (DataOutputStream wr = new DataOutputStream(con.getOutputStream())) {
+
+                wr.write(postData);
+            }
+
+            StringBuilder content;
+
+            try (BufferedReader br = new BufferedReader(
+                    new InputStreamReader(con.getInputStream()))) {
+
+                String line;
+                content = new StringBuilder();
+
+                while ((line = br.readLine()) != null) {
+                    content.append(line);
+                    content.append(System.lineSeparator());
+                }
+            }
+            String fullresult = content.toString(); 
+            
+         
+            String[] arrOfStr = fullresult.split("[,:]");
+            for (int i=0;i<3;i++) {
+            	if(i==1) {
+            		ArasAcessToken=arrOfStr[i];
+            	}
+            	
+            }
+            getArasAcessToken =ArasAcessToken.replaceAll("\"", "");
+            System.out.println(getArasAcessToken);
+
+        } catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} finally {
+
+            con.disconnect();
+        }
+    }
+}
+	
+
+
