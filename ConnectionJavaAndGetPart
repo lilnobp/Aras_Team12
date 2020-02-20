@@ -71,7 +71,13 @@ public class RestApi {
 			e.printStackTrace();
 		}
          // printing result from response
-         System.out.println("Response:-" + response.toString());
+         String fullPartresult = response.toString(); 
+         
+         
+         String[] arrOfStr = fullPartresult.split("[{},]");
+            for (String part: arrOfStr)
+            	System.out.println(part);
+         
     }
 	public static void connection()     {
 		String url = "http://localhost/InnovatorServer/oauthserver/connect/token";
